@@ -17,101 +17,131 @@ interface graph {
 }
 
 const parse2edge = (pattern: any, g: graph, s: state) => {
+    var child_size: number;
+    
     switch(pattern.type){
-        case "Pattern":
+        case "Pattern": // rerejsのParser初期フォーマット
             parse2edge(pattern.child, g, s);
             break;
-        case "Sequence":
+
+        case "Sequence": // /ccccc/
+            child_size = pattern.children.length;
+            const new_seq_first: number = g.vertex_num + 1;
+            g.vertex_num += child_size-1;
+
             pattern.children.forEach((child_pattern: any, index: number) => {
                 var next_state: state;
                 if(index == 0){
-                    next_state = {from: s.from, to: g.vertex_num+1};
-                    parse2edge(child_pattern, g, next_state);
-                    g.vertex_num++;
+                    next_state = {from: s.from, to: new_seq_first};
                 }else if(index == pattern.children.length-1){
-                    next_state = {from: g.vertex_num, to: s.to};
-                    parse2edge(child_pattern, g, next_state);
+                    next_state = {from: new_seq_first + (index-1), to: s.to};
                 }else{
-                    next_state = {from: g.vertex_num, to: g.vertex_num+1};
-                    parse2edge(child_pattern, g, next_state);
-                    g.vertex_num++;
+                    next_state = {from: new_seq_first + (index-1), to: new_seq_first + index};
                 }
+                parse2edge(child_pattern, g, next_state);
             });
             break;
-        case "Capture":
+
+        case "Capture": // /(a)/
+            parse2edge(pattern.child, g, s);
             break;
-        case "Disjunction":
-            /*
-            output.push({from: num, to: num+1, char: 'ε'});
-            output.push({from: num, to: num+2, char: 'ε'});
-            output.push({from: num+1, to: num+3, char: pattern.children[0].raw});
-            output.push({from: num+2, to: num+4, char: pattern.children[1].raw});
-            output.push({from: num+3, to:num+5, char: 'ε'});
-            output.push({from: num+4, to:num+5, char: 'ε'});
-            */
+
+        case "Disjunction": // 選択　/(a|a)/
+            child_size = pattern.children.length;
+            const new_from_1: number = g.vertex_num + 1;
+            const new_to_1: number = g.vertex_num + child_size + 1;
+            g.vertex_num += child_size*2;
+
+            pattern.children.forEach((child_pattern: any, index: number) => {
+                const new_from_i: number = new_from_1 + index;
+                const new_to_i: number = new_to_1 + index;
+
+                // 個々の選択候補について、新しく初期状態と受理状態を作る
+                g.edges.push({from: s.from, to: new_from_i, char: 'ε'});
+                g.edges.push({from: new_to_i, to: s.to, char: 'ε'});
+
+                const next_state: state = {
+                    from: new_from_i, 
+                    to: new_to_i
+                };
+                parse2edge(child_pattern, g, next_state);
+            });
             break;
-        case "Many":
-            /*
-            const many_from: number = vertex
-            parse2edge(pattern.child, g);
-            
-            output.push({from: num, to: num+1, char: 'ε'})
-            output.push({from: num+1, to: num+1, char: pattern.child.raw});
-            */
+
+        case "Many": // /a*/
+            // Manyについて、新しく初期状態と受理状態を作る
+            const new_from: number = g.vertex_num + 1;
+            const new_to: number = g.vertex_num + 2;
+            g.vertex_num += 2;
+
+            g.edges.push({from: s.from, to: new_from, char: 'ε'});
+            g.edges.push({from: new_to, to: s.to, char: 'ε'});
+
+            //繰り返しの遷移
+            g.edges.push({from: new_to, to: new_from, char: 'ε'});
+
+            // 空文字の場合の遷移
+            g.edges.push({from: s.from, to: s.to, char: 'ε'});
+
+            const next_state: state = {from: new_from, to: new_to};
+            parse2edge(pattern.child, g, next_state);
             break;
+
         case "Char":
             g.edges.push({from: s.from, to: s.to, char: pattern.raw});
             break;
     }
 } 
 
+const graph2gvis = (g: graph) => {
+    console.log(
+        "digraph DFA {\n" +
+        " rankdir=\"LR\""
+    );
+
+    g.edges.forEach((e: edge) => {
+        console.log(
+            " " + e.from + " -> " + e.to + " [label=\"" + e.char + "\"]"
+        );
+    });
+
+    console.log(
+        "}\n"
+    );
+};
+
 const main = () => {
-    /*
-    const parser1 = new Parser('a');
+    const parser1 = new Parser('a(aa|bb)*d');
     const pattern1 = parser1.parse();
-
-    var out1: Array<edge> = new Array;
-    parse2edge(pattern1, out1, 0);
     
-    console.log(out1);
-    [ { from: 0, to: 1, char: 'a' } ]
-    */
-    /*
-    const parser2 = new Parser('a|b');
-    const pattern2 = parser2.parse();
-
-    var out2: Array<edge> = new Array;
-    parse2edge(pattern2, out2, 0);
-
-    [
-        { from: 0, to: 1, char: 'ε' },
-        { from: 0, to: 2, char: 'ε' },
-        { from: 1, to: 3, char: 'a' },
-        { from: 2, to: 4, char: 'b' },
-        { from: 3, to: 5, char: 'ε' },
-        { from: 4, to: 5, char: 'ε' }
-    ]
-    */
-    /*
-    const parser3 = new Parser('a*');
-    const pattern3 = parser3.parse();
-
-    var out3: Array<edge> = new Array;
-    parse2edge(pattern3, out3, 0);
-    [ { from: 0, to: 0, char: 'a' } ]
-    */
-    
-    const parser4 = new Parser('a(aa|bb)*d');
-    const pattern4 = parser4.parse();
-    
-    var graph4: graph = {
-        vertex_num: 0,
+    var graph1: graph = {
+        vertex_num: 1,
         edges: new Array
     };
     const innial_state = {from: 0, to: 1}
-    parse2edge(pattern4, graph4, innial_state);
-    
-    console.log(graph4);
+    parse2edge(pattern1, graph1, innial_state);
+
+    graph2gvis(graph1);
+
+    /*
+    digraph DFA {
+        rankdir="LR"
+        0 -> 2 [label="a"]
+        2 -> 4 [label="ε"]
+        5 -> 3 [label="ε"]
+        5 -> 4 [label="ε"]
+        2 -> 3 [label="ε"]
+        4 -> 6 [label="ε"]
+        8 -> 5 [label="ε"]
+        6 -> 10 [label="a"]
+        10 -> 8 [label="a"]
+        4 -> 7 [label="ε"]
+        9 -> 5 [label="ε"]
+        7 -> 11 [label="b"]
+        11 -> 9 [label="b"]
+        3 -> 1 [label="d"]
+    }
+    */
 }
 
 main();
