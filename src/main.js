@@ -16,15 +16,16 @@ var parse2edge = function (pattern) {
             break;
         */
     }
-    //return {from: 0, to: 1, char: 'a'};
 };
 var main = function () {
     var parser1 = new rerejs_1.Parser('a');
     var pattern1 = parser1.parse();
-    console.log(pattern1);
-    console.log(pattern1.child.range);
+    //console.log(pattern1);
     parse2edge(pattern1);
     console.log(out);
+    /*
+    出力：[ { from: 0, to: 1, char: 'a' } ]
+    */
     /*
     const parser2 = new Parser('(a|b)');
     const pattern2 = parser2.parse();
@@ -33,13 +34,6 @@ var main = function () {
     const parser3 = new Parser('a+');
     const pattern3 = parser2.parse();
     console.log(pattern3);
-    */
-    // 出力
-    /*
-    console.log(
-        "digraph DFA {\n" +
-        " ra"
-    );
     */
 };
 main();
