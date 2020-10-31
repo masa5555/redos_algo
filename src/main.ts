@@ -6,31 +6,67 @@ interface edge {
     char: string; 
 }
 
-const parse2edge = (pattern: any, output: Array<edge>, num: number) => {
+interface state {
+    from: number;
+    to: number;
+}
 
+interface graph {
+    vertex_num: number;
+    edges: Array<edge>;
+}
+
+const parse2edge = (pattern: any, g: graph, s: state) => {
     switch(pattern.type){
         case "Pattern":
-            parse2edge(pattern.child, output, num);
+            parse2edge(pattern.child, g, s);
             break;
-        case "Char":
-            output.push({from: num, to: num+1, char: pattern.raw})
+        case "Sequence":
+            pattern.children.forEach((child_pattern: any, index: number) => {
+                var next_state: state;
+                if(index == 0){
+                    next_state = {from: s.from, to: g.vertex_num+1};
+                    parse2edge(child_pattern, g, next_state);
+                    g.vertex_num++;
+                }else if(index == pattern.children.length-1){
+                    next_state = {from: g.vertex_num, to: s.to};
+                    parse2edge(child_pattern, g, next_state);
+                }else{
+                    next_state = {from: g.vertex_num, to: g.vertex_num+1};
+                    parse2edge(child_pattern, g, next_state);
+                    g.vertex_num++;
+                }
+            });
+            break;
+        case "Capture":
             break;
         case "Disjunction":
+            /*
             output.push({from: num, to: num+1, char: 'ε'});
             output.push({from: num, to: num+2, char: 'ε'});
             output.push({from: num+1, to: num+3, char: pattern.children[0].raw});
             output.push({from: num+2, to: num+4, char: pattern.children[1].raw});
             output.push({from: num+3, to:num+5, char: 'ε'});
             output.push({from: num+4, to:num+5, char: 'ε'});
+            */
             break;
         case "Many":
-            output.push({from: num, to: num, char: pattern.child.raw});
+            /*
+            const many_from: number = vertex
+            parse2edge(pattern.child, g);
+            
+            output.push({from: num, to: num+1, char: 'ε'})
+            output.push({from: num+1, to: num+1, char: pattern.child.raw});
+            */
+            break;
+        case "Char":
+            g.edges.push({from: s.from, to: s.to, char: pattern.raw});
             break;
     }
 } 
 
-
 const main = () => {
+    /*
     const parser1 = new Parser('a');
     const pattern1 = parser1.parse();
 
@@ -38,18 +74,15 @@ const main = () => {
     parse2edge(pattern1, out1, 0);
     
     console.log(out1);
-    /*
     [ { from: 0, to: 1, char: 'a' } ]
     */
-
+    /*
     const parser2 = new Parser('a|b');
     const pattern2 = parser2.parse();
-    console.log(pattern2.child);
 
     var out2: Array<edge> = new Array;
     parse2edge(pattern2, out2, 0);
 
-    /*
     [
         { from: 0, to: 1, char: 'ε' },
         { from: 0, to: 2, char: 'ε' },
@@ -59,17 +92,26 @@ const main = () => {
         { from: 4, to: 5, char: 'ε' }
     ]
     */
-
+    /*
     const parser3 = new Parser('a*');
     const pattern3 = parser3.parse();
-    console.log(pattern3);  
 
     var out3: Array<edge> = new Array;
     parse2edge(pattern3, out3, 0);
-    console.log(out3);
-    /*
     [ { from: 0, to: 0, char: 'a' } ]
     */
-};
+    
+    const parser4 = new Parser('a(aa|bb)*d');
+    const pattern4 = parser4.parse();
+    
+    var graph4: graph = {
+        vertex_num: 0,
+        edges: new Array
+    };
+    const innial_state = {from: 0, to: 1}
+    parse2edge(pattern4, graph4, innial_state);
+    
+    console.log(graph4);
+}
 
 main();
