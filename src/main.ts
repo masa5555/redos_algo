@@ -16,7 +16,7 @@ interface graph {
     edges: Array<edge>;
 }
 
-const parse2edge = (pattern: any, g: graph, s: state) => {
+const parse2edge = (pattern: any, g: graph, s: state): void => {
     var child_size: number;
     
     switch(pattern.type){
@@ -46,7 +46,7 @@ const parse2edge = (pattern: any, g: graph, s: state) => {
             parse2edge(pattern.child, g, s);
             break;
 
-        case "Disjunction": // 選択　/(a|a)/
+        case "Disjunction": // 選択　/a|a/
             child_size = pattern.children.length;
             const new_from_1: number = g.vertex_num + 1;
             const new_to_1: number = g.vertex_num + child_size + 1;
@@ -93,24 +93,22 @@ const parse2edge = (pattern: any, g: graph, s: state) => {
     }
 } 
 
-const graph2gvis = (g: graph) => {
-    console.log(
-        "digraph DFA {\n" +
-        " rankdir=\"LR\""
-    );
+const graph2gvis = (g: graph): void => {
+    console.log("digraph ε-NFA {");
+    console.log(" rankdir=\"LR\"");
 
     g.edges.forEach((e: edge) => {
         console.log(
-            " " + e.from + " -> " + e.to + " [label=\"" + e.char + "\"]"
+            ` ${e.from} -> ${e.to} [label="${e.char}"]`
+            //" " + e.from + " -> " + e.to + " [label=\"" + e.char + "\"]"
         );
     });
 
-    console.log(
-        "}\n"
-    );
+    console.log("}");
 };
 
 const main = () => {
+    // OK
     const parser1 = new Parser('a(aa|bb)*d');
     const pattern1 = parser1.parse();
     
@@ -118,7 +116,7 @@ const main = () => {
         vertex_num: 1,
         edges: new Array
     };
-    const innial_state = {from: 0, to: 1}
+    const innial_state: state = {from: 0, to: 1};
     parse2edge(pattern1, graph1, innial_state);
 
     graph2gvis(graph1);
@@ -142,6 +140,17 @@ const main = () => {
         3 -> 1 [label="d"]
     }
     */
+
+   const parser2 = new Parser('(a*)*');
+   const pattern2 = parser2.parse();
+   
+   var graph2: graph = {
+       vertex_num: 1,
+       edges: new Array
+   };
+   parse2edge(pattern2, graph2, innial_state);
+
+   graph2gvis(graph2);
 }
 
 main();

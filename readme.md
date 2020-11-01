@@ -1,4 +1,4 @@
-[rerejs](https://github.com/MakeNowJust/rerejs)を用いてパースした結果をオートマトンに変換し、ReDoSの原因となる構造を検出する。
+[rerejs](https://github.com/MakeNowJust/rerejs)を用いてパースした正規表現をオートマトンに変換し、ReDoSの原因となる構造を検出する。
 
 ### 実装済み
 - /a(aa|bb)*d/などをε-NFA構造に変換
@@ -10,6 +10,11 @@
 
 ### task
 - 他の正規表現記法に対応
+    - /+/
+    - /./
+    - Class (文字クラス, [a-z] みたいなやつ)
+    - EscapeClass
 - テストの仕組みを作りたい
 - 優先度付きのオートマトンの実装
+- NFA -> DFA
 - (強連結成分分解を用いて) IDA, EDAの検出

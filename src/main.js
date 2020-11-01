@@ -4,10 +4,10 @@ var rerejs_1 = require("rerejs");
 var parse2edge = function (pattern, g, s) {
     var child_size;
     switch (pattern.type) {
-        case "Pattern":
+        case "Pattern": // rerejsのParser初期フォーマット
             parse2edge(pattern.child, g, s);
             break;
-        case "Sequence":
+        case "Sequence": // /ccccc/
             child_size = pattern.children.length;
             var new_seq_first_1 = g.vertex_num + 1;
             g.vertex_num += child_size - 1;
@@ -25,10 +25,10 @@ var parse2edge = function (pattern, g, s) {
                 parse2edge(child_pattern, g, next_state);
             });
             break;
-        case "Capture":
+        case "Capture": // /(a)/
             parse2edge(pattern.child, g, s);
             break;
-        case "Disjunction":
+        case "Disjunction": // 選択　/a|a/
             child_size = pattern.children.length;
             var new_from_1_1 = g.vertex_num + 1;
             var new_to_1_1 = g.vertex_num + child_size + 1;
@@ -46,8 +46,7 @@ var parse2edge = function (pattern, g, s) {
                 parse2edge(child_pattern, g, next_state);
             });
             break;
-        case "Many":
-            console.log(s);
+        case "Many": // /a*/
             // Manyについて、新しく初期状態と受理状態を作る
             var new_from = g.vertex_num + 1;
             var new_to = g.vertex_num + 2;
@@ -67,56 +66,52 @@ var parse2edge = function (pattern, g, s) {
     }
 };
 var graph2gvis = function (g) {
-    console.log("digraph DFA {\n" +
-        " rankdir=\"LR\"");
+    console.log("digraph ε-NFA {");
+    console.log(" rankdir=\"LR\"");
     g.edges.forEach(function (e) {
-        console.log(" " + e.from + " -> " + e.to + " [label=\"" + e.char + "\"]");
+        console.log(" " + e.from + " -> " + e.to + " [label=\"" + e.char + "\"]"
+        //" " + e.from + " -> " + e.to + " [label=\"" + e.char + "\"]"
+        );
     });
-    console.log("}\n");
+    console.log("}");
 };
 var main = function () {
-    /*
-    const parser1 = new Parser('a');
-    const pattern1 = parser1.parse();
-
-    var out1: Array<edge> = new Array;
-    parse2edge(pattern1, out1, 0);
-    
-    console.log(out1);
-    [ { from: 0, to: 1, char: 'a' } ]
-    */
-    /*
-    const parser2 = new Parser('a|b');
-    const pattern2 = parser2.parse();
-
-    var out2: Array<edge> = new Array;
-    parse2edge(pattern2, out2, 0);
-
-    [
-        { from: 0, to: 1, char: 'ε' },
-        { from: 0, to: 2, char: 'ε' },
-        { from: 1, to: 3, char: 'a' },
-        { from: 2, to: 4, char: 'b' },
-        { from: 3, to: 5, char: 'ε' },
-        { from: 4, to: 5, char: 'ε' }
-    ]
-    */
-    /*
-    const parser3 = new Parser('a*');
-    const pattern3 = parser3.parse();
-
-    var out3: Array<edge> = new Array;
-    parse2edge(pattern3, out3, 0);
-    [ { from: 0, to: 0, char: 'a' } ]
-    */
-    var parser4 = new rerejs_1.Parser('a(aa|bb)*d');
-    var pattern4 = parser4.parse();
-    var graph4 = {
+    // OK
+    var parser1 = new rerejs_1.Parser('a(aa|bb)*d');
+    var pattern1 = parser1.parse();
+    var graph1 = {
         vertex_num: 1,
         edges: new Array
     };
     var innial_state = { from: 0, to: 1 };
-    parse2edge(pattern4, graph4, innial_state);
-    graph2gvis(graph4);
+    parse2edge(pattern1, graph1, innial_state);
+    graph2gvis(graph1);
+    /*
+    digraph DFA {
+        rankdir="LR"
+        0 -> 2 [label="a"]
+        2 -> 4 [label="ε"]
+        5 -> 3 [label="ε"]
+        5 -> 4 [label="ε"]
+        2 -> 3 [label="ε"]
+        4 -> 6 [label="ε"]
+        8 -> 5 [label="ε"]
+        6 -> 10 [label="a"]
+        10 -> 8 [label="a"]
+        4 -> 7 [label="ε"]
+        9 -> 5 [label="ε"]
+        7 -> 11 [label="b"]
+        11 -> 9 [label="b"]
+        3 -> 1 [label="d"]
+    }
+    */
+    var parser2 = new rerejs_1.Parser('(a*)*');
+    var pattern2 = parser2.parse();
+    var graph2 = {
+        vertex_num: 1,
+        edges: new Array
+    };
+    parse2edge(pattern2, graph2, innial_state);
+    graph2gvis(graph2);
 };
 main();
