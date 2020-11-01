@@ -1,0 +1,28 @@
+{
+  "name": "redos_algo",
+  "version": "1.0.0",
+  "description": "rerejsを用いてパースした正規表現をオートマトンに変換し、ReDoSの原因となる構造を検出する。",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "ts-node",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/masa5555/redos_algo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/masa5555/redos_algo/issues"
+  },
+  "homepage": "https://github.com/masa5555/redos_algo#readme",
+  "devDependencies": {
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
+  },
+  "dependencies": {
+    "rerejs": "^0.2.0"
+  }
+}
