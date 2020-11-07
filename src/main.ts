@@ -1,22 +1,8 @@
 import { Parser } from "rerejs";
+import {edge, State, Graph} from "./type";
+import {scc} from "./strongly_connected_component";
 
-interface edge {
-    from: number;
-    to: number;
-    char: string; 
-}
-
-interface state {
-    from: number;
-    to: number;
-}
-
-interface graph {
-    vertex_num: number;
-    edges: Array<edge>;
-}
-
-const parse2edge = (pattern: any, g: graph, s: state): void => {
+const parse2edge = (pattern: any, g: Graph, s: State): void => {
     var child_size: number;
     
     switch(pattern.type){
@@ -30,15 +16,15 @@ const parse2edge = (pattern: any, g: graph, s: state): void => {
             g.vertex_num += child_size-1;
 
             pattern.children.forEach((child_pattern: any, index: number) => {
-                var next_state: state;
+                var next_State: State;
                 if(index == 0){
-                    next_state = {from: s.from, to: new_seq_first};
+                    next_State = {from: s.from, to: new_seq_first};
                 }else if(index == pattern.children.length-1){
-                    next_state = {from: new_seq_first + (index-1), to: s.to};
+                    next_State = {from: new_seq_first + (index-1), to: s.to};
                 }else{
-                    next_state = {from: new_seq_first + (index-1), to: new_seq_first + index};
+                    next_State = {from: new_seq_first + (index-1), to: new_seq_first + index};
                 }
-                parse2edge(child_pattern, g, next_state);
+                parse2edge(child_pattern, g, next_State);
             });
             break;
 
@@ -60,11 +46,11 @@ const parse2edge = (pattern: any, g: graph, s: state): void => {
                 g.edges.push({from: s.from, to: new_from_i, char: 'ε'});
                 g.edges.push({from: new_to_i, to: s.to, char: 'ε'});
 
-                const next_state: state = {
+                const next_State: State = {
                     from: new_from_i, 
                     to: new_to_i
                 };
-                parse2edge(child_pattern, g, next_state);
+                parse2edge(child_pattern, g, next_State);
             });
             break;
 
@@ -83,8 +69,8 @@ const parse2edge = (pattern: any, g: graph, s: state): void => {
             // 空文字の場合の遷移
             g.edges.push({from: s.from, to: s.to, char: 'ε'});
 
-            const next_state: state = {from: new_from, to: new_to};
-            parse2edge(pattern.child, g, next_state);
+            const next_State: State = {from: new_from, to: new_to};
+            parse2edge(pattern.child, g, next_State);
             break;
 
         case "Char":
@@ -93,36 +79,30 @@ const parse2edge = (pattern: any, g: graph, s: state): void => {
     }
 } 
 
-const graph2gvis = (g: graph): void => {
-    console.log("digraph ε-NFA {");
+const graph2gvis = (g: Graph): void => {
+    console.log("digraph εNFA {");
     console.log(" rankdir=\"LR\"");
 
     g.edges.forEach((e: edge) => {
-        console.log(
-            ` ${e.from} -> ${e.to} [label="${e.char}"]`
-            //" " + e.from + " -> " + e.to + " [label=\"" + e.char + "\"]"
-        );
+        console.log(` ${e.from} -> ${e.to} [label="${e.char}"]`);
     });
 
     console.log("}");
 };
 
 const main = () => {
-    // OK
     const parser1 = new Parser('a(aa|bb)*d');
     const pattern1 = parser1.parse();
     
-    var graph1: graph = {
-        vertex_num: 1,
-        edges: new Array
-    };
-    const innial_state: state = {from: 0, to: 1};
-    parse2edge(pattern1, graph1, innial_state);
+    const graph1 = new Graph();
+
+    const innial_State = new State();
+    parse2edge(pattern1, graph1, innial_State);
 
     graph2gvis(graph1);
 
     /*
-    digraph DFA {
+    digraph εNFA {
         rankdir="LR"
         0 -> 2 [label="a"]
         2 -> 4 [label="ε"]
@@ -143,14 +123,30 @@ const main = () => {
 
    const parser2 = new Parser('(a*)*');
    const pattern2 = parser2.parse();
-   
-   var graph2: graph = {
-       vertex_num: 1,
-       edges: new Array
-   };
-   parse2edge(pattern2, graph2, innial_state);
+   const graph2 = new Graph();
+   parse2edge(pattern2, graph2, innial_State);
 
    graph2gvis(graph2);
+   /*
+    digraph εNFA {
+    rankdir="LR"
+    0 -> 2 [label="ε"]
+    3 -> 1 [label="ε"]
+    3 -> 2 [label="ε"]
+    0 -> 1 [label="ε"]
+    2 -> 4 [label="ε"]
+    5 -> 3 [label="ε"]
+    5 -> 4 [label="ε"]
+    2 -> 3 [label="ε"]
+    4 -> 5 [label="a"]
+    }
+   */
+
+  const scc_array2 = scc(graph2);
+  console.log(scc_array2);
+  /*
+    [ 0, 2, 1, 1, 1, 1 ]
+  */
 }
 
 main();

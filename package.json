@@ -2,7 +2,7 @@
   "name": "redos_algo",
   "version": "1.0.0",
   "description": "rerejsを用いてパースした正規表現をオートマトンに変換し、ReDoSの原因となる構造を検出する。",
-  "main": "src/index.ts",
+  "main": "src/main.ts",
   "scripts": {
     "start": "ts-node",
     "test": "echo \"Error: no test specified\" && exit 1"
