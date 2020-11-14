@@ -2,6 +2,7 @@ export interface edge {
     from: number;
     to: number;
     char: string; 
+    //id: number;
 }
 
 export class State {

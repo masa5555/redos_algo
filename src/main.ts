@@ -3,8 +3,10 @@ import {edge, State, Graph} from "./type";
 import {scc} from "./strongly_connected_component";
 
 const parse2edge = (pattern: any, g: Graph, s: State): void => {
-    var child_size: number;
-    
+    let child_size: number;
+    let new_from: number;
+    let new_to: number;
+
     switch(pattern.type){
         case "Pattern": // rerejsのParser初期フォーマット
             parse2edge(pattern.child, g, s);
@@ -56,8 +58,8 @@ const parse2edge = (pattern: any, g: Graph, s: State): void => {
 
         case "Many": // /a*/
             // Manyについて、新しく初期状態と受理状態を作る
-            const new_from: number = g.vertex_num + 1;
-            const new_to: number = g.vertex_num + 2;
+            new_from = g.vertex_num + 1;
+            new_to = g.vertex_num + 2;
             g.vertex_num += 2;
 
             g.edges.push({from: s.from, to: new_from, char: 'ε'});
@@ -69,8 +71,28 @@ const parse2edge = (pattern: any, g: Graph, s: State): void => {
             // 空文字の場合の遷移
             g.edges.push({from: s.from, to: s.to, char: 'ε'});
 
-            const next_State: State = {from: new_from, to: new_to};
-            parse2edge(pattern.child, g, next_State);
+            parse2edge(pattern.child, g, {from: new_from, to: new_to});
+            break;
+
+        case "Some": // /a+/
+            new_from = g.vertex_num + 1;
+            new_to = g.vertex_num + 2;
+            g.vertex_num += 2;
+
+            g.edges.push({from: s.from, to: new_from, char: 'ε'});
+            g.edges.push({from: new_to, to: s.to, char: 'ε'});
+
+            //繰り返しの遷移
+            g.edges.push({from: new_to, to: new_from, char: 'ε'});
+
+            parse2edge(pattern.child, g, {from: new_from, to: new_to});
+            break;
+        
+        case "Dot":
+            g.edges.push({from: s.from, to: s.to, char: 'any_char'});
+            break;
+
+        case "Class":
             break;
 
         case "Char":
@@ -90,17 +112,19 @@ const graph2gvis = (g: Graph): void => {
     console.log("}");
 };
 
+const parse_regexp2vis = (exp: string): void => {
+    const parser = new Parser(exp);
+    const pattern = parser.parse();
+    const graph = new Graph();
+    const initial_state = new State();
+    parse2edge(pattern, graph, initial_state);
+    graph2gvis(graph);
+
+    console.log(scc(graph));
+};
+
 const main = () => {
-    const parser1 = new Parser('a(aa|bb)*d');
-    const pattern1 = parser1.parse();
-    
-    const graph1 = new Graph();
-
-    const innial_State = new State();
-    parse2edge(pattern1, graph1, innial_State);
-
-    graph2gvis(graph1);
-
+    parse_regexp2vis('a(aa|bb)*d');
     /*
     digraph εNFA {
         rankdir="LR"
@@ -119,14 +143,15 @@ const main = () => {
         11 -> 9 [label="b"]
         3 -> 1 [label="d"]
     }
+
+    [
+    0, 4, 1, 3, 2,
+    2, 2, 2, 2, 2,
+    2, 2
+    ]
     */
 
-   const parser2 = new Parser('(a*)*');
-   const pattern2 = parser2.parse();
-   const graph2 = new Graph();
-   parse2edge(pattern2, graph2, innial_State);
-
-   graph2gvis(graph2);
+   parse_regexp2vis('(a*)*');
    /*
     digraph εNFA {
     rankdir="LR"
@@ -140,13 +165,22 @@ const main = () => {
     2 -> 3 [label="ε"]
     4 -> 5 [label="a"]
     }
-   */
 
-  const scc_array2 = scc(graph2);
-  console.log(scc_array2);
-  /*
     [ 0, 2, 1, 1, 1, 1 ]
   */
+
+  const parser3 = new Parser('(a+)+');
+  const pattern3 = parser3.parse();
+  console.log(pattern3);
+
+  const parser4 = new Parser('aa?..a');
+  const pattern4 = parser4.parse();
+  console.log(pattern4.child);
+
+  const parser6 = new Parser('[a-z]');
+  const pattern6 = parser6.parse();
+  console.log(pattern6);
+  console.log(pattern6.child);
 }
 
 main();
