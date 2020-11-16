@@ -1,26 +1,22 @@
-export interface edge {
-    from: number;
+export type Edge = {
+    char: string; // typescriptにchar型がない
     to: number;
-    char: string; 
-    //id: number;
 }
 
-export class State {
-    from: number;
-    to: number;
+export class SCC_Graph {
+    nodes: Set<number>; // 頂点集合
+    transitions: Map<number, Edge[]>; // 辺集合
 
-    constructor(){
-        this.from = 0;
-        this.to = 1;
-    }
-}
+    constructor(size: number, edge: any){ // とりあえずanyとしている
+        this.nodes = new Set<number>();
+        this.transitions = new Map<number, Edge[]>();
+        for(let i = 0; i < size; i++){
+            this.nodes.add(i);
+            this.transitions.set(i, []);
+        }
 
-export class Graph {
-    vertex_num: number;
-    edges: Array<edge>;
-
-    constructor(){
-        this.vertex_num = 1;
-        this.edges = new Array<edge>();
+        for(const e of edge){
+            this.transitions.get(e.from)!.push({char: e.char, to: e.to});
+        }
     }
 }
