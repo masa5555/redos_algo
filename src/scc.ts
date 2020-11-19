@@ -28,9 +28,8 @@ export function scc(g: SCC_Graph): [number, number[]] {
     const visited: boolean[] = new Array(g.nodes.size).fill(false);
 
     // 逆方向のグラフを構成
-    let rg: SCC_Graph = new SCC_Graph(g.nodes.size, []);
+    let rg: SCC_Graph = new SCC_Graph(g.nodes.size);
     for(let v = 0; v < g.nodes.size; v++){
-        console.log(g.transitions.get(v)!);
         g.transitions.get(v)!.forEach((e) =>{
             rg.transitions.get(e.to)!.push({char: e.char, to: v});
         });
