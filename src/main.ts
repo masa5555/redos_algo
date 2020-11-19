@@ -1,5 +1,6 @@
 import {Edge, SCC_Graph, direct_product_node, direct_product_graph, direct_product_edge} from "./type";
 import {scc} from "./scc";
+import {search_EDA} from "./eda";
 
 
 const main = () => {
@@ -42,37 +43,26 @@ const main = () => {
     // sccする(頂点のグループ分けをする)
     const [group_num, group_array] = scc(g1_graph);
 
-    console.log(group_num, group_array);
-
     // 強連結成分ごとに直積グラフをつくり、判定
     for(let i = 0; i < group_num; i++){
-        const dpg1 = new direct_product_graph(g1_graph, g1_graph);
         
-        for(let j = 0; j < g1_graph.nodes.size; j++){
-            for(let k = 0; k < g1_graph.nodes.size; k++){
-                if(i != group_array[j] || i != group_array[k]) continue;
+        // 各強連結成分に必要なノードのindex配列を渡したい
+        const scc_array1 = group_array
+            .map((value, index) => {
+                if(value==i) return index; 
+                else return -1;
+            }).filter(value => value >= 0);
+        console.log(scc_array1);
+        const scc_array2 = scc_array1;
 
-                g1_graph.transitions.get(j)!.forEach((left_e: Edge) => {
-                    g1_graph.transitions.get(k)!.forEach((right_e: Edge) => {
-                        
-                        if(left_e.char == right_e.char){
-                            dpg1.transitions.get(
-                                [...dpg1.transitions.keys()].filter(
-                                    dpn => (dpn.left === j && dpn.right === k)
-                                )[0]
-                            )!.push(
-                                {char: left_e.char, to: {left: left_e.to, right: right_e.to}}
-                            );
-                        }
-                    });
-                });
-            }
-        }
+        const dpg = new direct_product_graph(scc_array1, scc_array2, g1_graph, g1_graph);
         
-        if(i == 0) console.log(dpg1);
+        
+        if(i == 0) console.log(dpg);
+        console.log("hasEDA =", search_EDA(dpg));
         
         // 未実装
-        //console.log(searh_EDA(dpg1));
+        //console.log(search_IDA(dpg));
     }
 }
 
